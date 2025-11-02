@@ -28,18 +28,23 @@
     <section class="card" aria-labelledby="step1">
       <h2 id="step1" class="step">Step 1: Upload your files</h2>
       <div class="uploader">
+        <!-- Left file -->
         <div class="u-col">
-          <label class="file-label" for="fileA">
-            <span class="file-title">Left file (A)</span>
-          </label>
-          <input type="file" id="fileA" accept=".csv,.xlsx,.xls,.docx" />
+          <div class="file-field">
+            <label for="fileA" class="file-button">Select File (A)</label>
+            <input type="file" id="fileA" accept=".csv,.xlsx,.xls,.docx" class="file-input" />
+            <span class="file-name" id="fileAName">No file chosen</span>
+          </div>
           <div id="pickerA" class="inline-info hidden" aria-live="polite"></div>
         </div>
+
+        <!-- Right file -->
         <div class="u-col">
-          <label class="file-label" for="fileB">
-            <span class="file-title">Right file (B)</span>
-          </label>
-          <input type="file" id="fileB" accept=".csv,.xlsx,.xls,.docx" />
+          <div class="file-field">
+            <label for="fileB" class="file-button">Select File (B)</label>
+            <input type="file" id="fileB" accept=".csv,.xlsx,.xls,.docx" class="file-input" />
+            <span class="file-name" id="fileBName">No file chosen</span>
+          </div>
           <div id="pickerB" class="inline-info hidden" aria-live="polite"></div>
         </div>
       </div>
@@ -52,17 +57,18 @@
       <div class="grid-2">
         <div>
           <label class="label" for="selectTabA">Dataset A sheet or table</label>
-          <select id="selectTabA" class="select" aria-label="Dataset A sheet or table"></select>
+          <select id="selectTabA" class="select"></select>
 
           <label class="label" for="keyA">Key column for A</label>
-          <select id="keyA" class="select" aria-label="Key column for A"></select>
+          <select id="keyA" class="select"></select>
         </div>
+
         <div>
           <label class="label" for="selectTabB">Dataset B sheet or table</label>
-          <select id="selectTabB" class="select" aria-label="Dataset B sheet or table"></select>
+          <select id="selectTabB" class="select"></select>
 
           <label class="label" for="keyB">Key column for B</label>
-          <select id="keyB" class="select" aria-label="Key column for B"></select>
+          <select id="keyB" class="select"></select>
         </div>
       </div>
       <div class="actions">
@@ -77,11 +83,11 @@
       <div class="grid-2">
         <div>
           <h3 class="subhead">Dataset A</h3>
-          <div id="previewA" class="table-wrap" role="region" aria-label="Preview of dataset A"></div>
+          <div id="previewA" class="table-wrap"></div>
         </div>
         <div>
           <h3 class="subhead">Dataset B</h3>
-          <div id="previewB" class="table-wrap" role="region" aria-label="Preview of dataset B"></div>
+          <div id="previewB" class="table-wrap"></div>
         </div>
       </div>
     </section>
@@ -90,15 +96,15 @@
     <section id="results-section" class="card hidden" aria-labelledby="results">
       <h2 id="results" class="step">Results</h2>
       <div id="summary" class="summary" aria-live="polite"></div>
-      <div class="tabs" role="tablist" aria-label="Diff result tabs">
-        <button data-tab="onlyA" class="tab active" role="tab" aria-selected="true" aria-controls="pane-onlyA" id="tab-onlyA">Only in A</button>
-        <button data-tab="onlyB" class="tab" role="tab" aria-selected="false" aria-controls="pane-onlyB" id="tab-onlyB">Only in B</button>
-        <button data-tab="changed" class="tab" role="tab" aria-selected="false" aria-controls="pane-changed" id="tab-changed">Changed rows</button>
+      <div class="tabs" role="tablist">
+        <button data-tab="onlyA" class="tab active" aria-selected="true" aria-controls="pane-onlyA">Only in A</button>
+        <button data-tab="onlyB" class="tab" aria-selected="false" aria-controls="pane-onlyB">Only in B</button>
+        <button data-tab="changed" class="tab" aria-selected="false" aria-controls="pane-changed">Changed rows</button>
       </div>
       <div class="tabpanes">
-        <div id="pane-onlyA" class="pane active" role="tabpanel" aria-labelledby="tab-onlyA"></div>
-        <div id="pane-onlyB" class="pane" role="tabpanel" aria-labelledby="tab-onlyB"></div>
-        <div id="pane-changed" class="pane" role="tabpanel" aria-labelledby="tab-changed"></div>
+        <div id="pane-onlyA" class="pane active"></div>
+        <div id="pane-onlyB" class="pane"></div>
+        <div id="pane-changed" class="pane"></div>
       </div>
       <div class="actions end">
         <button id="btnExport" class="btn" type="button">Export diff as CSV</button>
@@ -110,10 +116,24 @@
     <div class="wrap">
       <span>AGPL-3.0</span>
       <span class="sep">•</span>
-      <span>DiffLens, built with vanilla JS, SheetJS, Mammoth</span>
+      <span>DiffLens by Vikram Kumar Sinha</span>
     </div>
   </footer>
 
   <script type="module" src="./js/app.js"></script>
+
+  <!-- Inline helper to show selected file names -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll(".file-input").forEach(input => {
+        input.addEventListener("change", e => {
+          const nameSpan = document.getElementById(e.target.id + "Name");
+          nameSpan.textContent = e.target.files.length
+            ? e.target.files[0].name
+            : "No file chosen";
+        });
+      });
+    });
+  </script>
 </body>
 </html>
