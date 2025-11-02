@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DiffLens: CSV, Excel, Word</title>
+
+  <!-- Font: Inter -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./css/styles.css" />
+
+  <!-- Libraries: SheetJS for CSV/XLSX, Mammoth for DOCX tables -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+</head>
+<body>
+  <header class="tf-header" role="banner">
+    <div class="wrap">
+      <h1 class="brand">DiffLens</h1>
+      <p class="tag">See your tables clearly. Compare CSV, Excel, and Word side by side.</p>
+    </div>
+  </header>
+
+  <main class="wrap" role="main">
+    <!-- Upload -->
+    <section class="card" aria-labelledby="step1">
+      <h2 id="step1" class="step">Step 1: Upload your files</h2>
+      <div class="uploader">
+        <div class="u-col">
+          <label class="file-label" for="fileA">
+            <span class="file-title">Left file (A)</span>
+          </label>
+          <input type="file" id="fileA" accept=".csv,.xlsx,.xls,.docx" />
+          <div id="pickerA" class="inline-info hidden" aria-live="polite"></div>
+        </div>
+        <div class="u-col">
+          <label class="file-label" for="fileB">
+            <span class="file-title">Right file (B)</span>
+          </label>
+          <input type="file" id="fileB" accept=".csv,.xlsx,.xls,.docx" />
+          <div id="pickerB" class="inline-info hidden" aria-live="polite"></div>
+        </div>
+      </div>
+      <p class="hint">CSV and Excel should have a header row. Word files must contain tables with the first row as headers.</p>
+    </section>
+
+    <!-- Mapping -->
+    <section id="mapping-section" class="card hidden" aria-labelledby="step2">
+      <h2 id="step2" class="step">Step 2: Choose sheet or table and key column</h2>
+      <div class="grid-2">
+        <div>
+          <label class="label" for="selectTabA">Dataset A sheet or table</label>
+          <select id="selectTabA" class="select" aria-label="Dataset A sheet or table"></select>
+
+          <label class="label" for="keyA">Key column for A</label>
+          <select id="keyA" class="select" aria-label="Key column for A"></select>
+        </div>
+        <div>
+          <label class="label" for="selectTabB">Dataset B sheet or table</label>
+          <select id="selectTabB" class="select" aria-label="Dataset B sheet or table"></select>
+
+          <label class="label" for="keyB">Key column for B</label>
+          <select id="keyB" class="select" aria-label="Key column for B"></select>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btnPreview" class="btn" type="button">Preview tables</button>
+        <button id="btnDiff" class="btn btn-primary" type="button">Run diff</button>
+      </div>
+    </section>
+
+    <!-- Preview -->
+    <section id="preview-section" class="card hidden" aria-labelledby="preview">
+      <h2 id="preview" class="step">Preview</h2>
+      <div class="grid-2">
+        <div>
+          <h3 class="subhead">Dataset A</h3>
+          <div id="previewA" class="table-wrap" role="region" aria-label="Preview of dataset A"></div>
+        </div>
+        <div>
+          <h3 class="subhead">Dataset B</h3>
+          <div id="previewB" class="table-wrap" role="region" aria-label="Preview of dataset B"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="results-section" class="card hidden" aria-labelledby="results">
+      <h2 id="results" class="step">Results</h2>
+      <div id="summary" class="summary" aria-live="polite"></div>
+      <div class="tabs" role="tablist" aria-label="Diff result tabs">
+        <button data-tab="onlyA" class="tab active" role="tab" aria-selected="true" aria-controls="pane-onlyA" id="tab-onlyA">Only in A</button>
+        <button data-tab="onlyB" class="tab" role="tab" aria-selected="false" aria-controls="pane-onlyB" id="tab-onlyB">Only in B</button>
+        <button data-tab="changed" class="tab" role="tab" aria-selected="false" aria-controls="pane-changed" id="tab-changed">Changed rows</button>
+      </div>
+      <div class="tabpanes">
+        <div id="pane-onlyA" class="pane active" role="tabpanel" aria-labelledby="tab-onlyA"></div>
+        <div id="pane-onlyB" class="pane" role="tabpanel" aria-labelledby="tab-onlyB"></div>
+        <div id="pane-changed" class="pane" role="tabpanel" aria-labelledby="tab-changed"></div>
+      </div>
+      <div class="actions end">
+        <button id="btnExport" class="btn" type="button">Export diff as CSV</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="tf-footer" role="contentinfo">
+    <div class="wrap">
+      <span>AGPL-3.0</span>
+      <span class="sep">•</span>
+      <span>DiffLens, built with vanilla JS, SheetJS, Mammoth</span>
+    </div>
+  </footer>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
