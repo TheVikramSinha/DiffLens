@@ -1,139 +1,783 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" itemscope itemtype="http://schema.org/SoftwareApplication">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>DiffLens: CSV, Excel, Word</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>DiffLens | Futuristic Data Comparison Tool</title>
+    <meta name="description" content="DiffLens is a browser-based visual comparison tool for tabular data. Compare CSV, Excel (.xlsx), and Word (.docx) tables with a futuristic interface.">
+    <meta name="keywords" content="data comparison, diff tool, csv compare, excel diff, word table compare, difflens, vikram kumar sinha">
+    <meta name="author" content="Vikram Kumar Sinha">
+    <meta name="robots" content="index, follow">
+    
+    <meta property="og:title" content="DiffLens | See Your Data Clearly">
+    <meta property="og:description" content="Compare CSV, Excel, and Word tables visually. No uploads, runs entirely in your browser.">
+    <meta property="og:url" content="https://thevikramsinha.github.io/DiffLens/">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://thevikramsinha.github.io/DiffLens/preview.png">
+    
+    <link rel="canonical" href="https://thevikramsinha.github.io/DiffLens/">
 
-  <!-- Font: Inter -->
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2300f3ff'/%3E%3Cstop offset='100%25' stop-color='%23bc13fe'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='45' stroke='url(%23g)' stroke-width='4' fill='none'/%3E%3Ccircle cx='50' cy='50' r='20' fill='url(%23g)'/%3E%3Cpath d='M50 5 L50 25 M50 75 L50 95 M5 50 L25 50 M75 50 L95 50' stroke='%23ffffff' stroke-width='2'/%3E%3C/svg%3E">
 
-  <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Libraries: SheetJS for CSV/XLSX, Mammoth for DOCX tables -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+    <style>
+        :root {
+            /* CYBERPUNK PALETTE */
+            --bg-dark: #050b14;
+            --bg-panel: #0a1120;
+            --primary: #00f3ff; /* Cyan */
+            --secondary: #bc13fe; /* Neon Purple */
+            --success: #00ff9d;
+            --danger: #ff0055;
+            --warning: #ffce00;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+            --border: #1e293b;
+            --glass: rgba(10, 17, 32, 0.7);
+            
+            --font-display: 'Rajdhani', sans-serif;
+            --font-code: 'JetBrains Mono', monospace;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-display);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 50% 0%, #1e1b4b 0%, transparent 50%),
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        /* HEADER */
+        header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--glass);
+        }
+
+        .brand {
+            font-size: 2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .license-badge {
+            font-size: 0.75rem;
+            border: 1px solid var(--text-muted);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        /* MAIN LAYOUT */
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+
+        .panel:hover {
+            border-color: rgba(0, 243, 255, 0.3);
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--border);
+        }
+
+        .panel.side-a::before { background: var(--success); box-shadow: 0 0 10px var(--success); }
+        .panel.side-b::before { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+
+        h2 { margin-top: 0; color: var(--text-main); font-size: 1.5rem; letter-spacing: 1px; }
+        
+        /* FORM CONTROLS */
+        label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem; }
+        
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px dashed var(--border);
+            padding: 1rem;
+            color: var(--text-main);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        select {
+            width: 100%;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-family: var(--font-code);
+            margin-bottom: 1rem;
+        }
+
+        /* ACTION BAR */
+        .action-bar {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 1rem 3rem;
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            background: var(--primary);
+            color: var(--bg-dark);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
+        }
+
+        .btn-export {
+            border-color: var(--secondary);
+            color: var(--secondary);
+        }
+
+        .btn-export:hover {
+            background: var(--secondary);
+            color: var(--bg-dark);
+            box-shadow: 0 0 20px rgba(188, 19, 254, 0.6);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
+        /* RESULTS TABLE */
+        .results-container {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            display: none; /* Hidden by default */
+        }
+
+        .stats-bar {
+            padding: 1rem;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            gap: 2rem;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--font-code);
+            font-size: 0.9rem;
+        }
+
+        .stat-item span { font-weight: bold; }
+        .text-green { color: var(--success); }
+        .text-red { color: var(--danger); }
+        .text-yellow { color: var(--warning); }
+
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 600px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        th {
+            background: var(--bg-dark);
+            color: var(--text-muted);
+            padding: 1rem;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* DIFF HIGHLIGHTING */
+        tr.diff-a { background: rgba(0, 255, 157, 0.1); }
+        tr.diff-a td:first-child { border-left: 4px solid var(--success); }
+        
+        tr.diff-b { background: rgba(255, 0, 85, 0.1); }
+        tr.diff-b td:first-child { border-left: 4px solid var(--danger); }
+        
+        tr.diff-changed { background: rgba(255, 206, 0, 0.1); }
+        tr.diff-changed td:first-child { border-left: 4px solid var(--warning); }
+        
+        .cell-changed {
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            text-decoration-color: var(--warning);
+            font-weight: bold;
+            color: var(--warning);
+        }
+
+        /* LOADING SPINNER */
+        .loader {
+            display: none;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border);
+            margin-top: auto;
+        }
+
+        /* INFO BOX */
+        .info-box {
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            color: var(--primary);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid-container { grid-template-columns: 1fr; }
+            .brand { font-size: 1.5rem; }
+        }
+    </style>
 </head>
 <body>
-  <header class="tf-header" role="banner">
-    <div class="wrap">
-      <h1 class="brand">DiffLens</h1>
-      <p class="tag">See your tables clearly. Compare CSV, Excel, and Word side by side.</p>
-    </div>
-  </header>
 
-  <main class="wrap" role="main">
-    <!-- Upload -->
-    <section class="card" aria-labelledby="step1">
-      <h2 id="step1" class="step">Step 1: Upload your files</h2>
-      <div class="uploader">
-        <!-- Left file -->
-        <div class="u-col">
-          <div class="file-field">
-            <label for="fileA" class="file-button">Select File (A)</label>
-            <input type="file" id="fileA" accept=".csv,.xlsx,.xls,.docx" class="file-input" />
-            <span class="file-name" id="fileAName">No file chosen</span>
-          </div>
-          <div id="pickerA" class="inline-info hidden" aria-live="polite"></div>
+    <header>
+        <div class="brand">
+            <svg width="30" height="30" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" stroke="#00f3ff" stroke-width="5" fill="none" />
+                <path d="M10 50 L90 50 M50 10 L50 90" stroke="#bc13fe" stroke-width="3" />
+            </svg>
+            DiffLens
+        </div>
+        <div class="license-badge">AGPL-3.0</div>
+    </header>
+
+    <main>
+        <div class="info-box">
+            <strong>System Ready:</strong> Supports .csv, .xlsx, .xls, and .docx (Tables Only).
         </div>
 
-        <!-- Right file -->
-        <div class="u-col">
-          <div class="file-field">
-            <label for="fileB" class="file-button">Select File (B)</label>
-            <input type="file" id="fileB" accept=".csv,.xlsx,.xls,.docx" class="file-input" />
-            <span class="file-name" id="fileBName">No file chosen</span>
-          </div>
-          <div id="pickerB" class="inline-info hidden" aria-live="polite"></div>
+        <div class="grid-container">
+            <div class="panel side-a">
+                <h2>DATASET A</h2>
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileA" accept=".csv, .xlsx, .xls, .docx">
+                </div>
+                
+                <div id="settingsA" style="display:none;">
+                    <label>Select Table/Sheet</label>
+                    <select id="sheetA"></select>
+                    
+                    <label>Key Column (Unique ID)</label>
+                    <select id="keyA"></select>
+                </div>
+            </div>
+
+            <div class="panel side-b">
+                <h2>DATASET B</h2>
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileB" accept=".csv, .xlsx, .xls, .docx">
+                </div>
+
+                <div id="settingsB" style="display:none;">
+                    <label>Select Table/Sheet</label>
+                    <select id="sheetB"></select>
+                    
+                    <label>Key Column (Unique ID)</label>
+                    <select id="keyB"></select>
+                </div>
+            </div>
         </div>
-      </div>
-      <p class="hint">CSV and Excel should have a header row. Word files must contain tables with the first row as headers.</p>
-    </section>
 
-    <!-- Mapping -->
-    <section id="mapping-section" class="card hidden" aria-labelledby="step2">
-      <h2 id="step2" class="step">Step 2: Choose sheet or table and key column</h2>
-      <div class="grid-2">
-        <div>
-          <label class="label" for="selectTabA">Dataset A sheet or table</label>
-          <select id="selectTabA" class="select"></select>
-
-          <label class="label" for="keyA">Key column for A</label>
-          <select id="keyA" class="select"></select>
+        <div class="action-bar">
+            <button id="runBtn" class="btn" disabled>INITIALIZE COMPARISON</button>
+            <button id="exportBtn" class="btn btn-export" style="display:none;">EXPORT REPORT</button>
         </div>
 
-        <div>
-          <label class="label" for="selectTabB">Dataset B sheet or table</label>
-          <select id="selectTabB" class="select"></select>
+        <div class="loader" id="loader"></div>
 
-          <label class="label" for="keyB">Key column for B</label>
-          <select id="keyB" class="select"></select>
+        <div class="results-container" id="results">
+            <div class="stats-bar">
+                <div class="stat-item text-green">Only in A: <span id="countA">0</span></div>
+                <div class="stat-item text-red">Only in B: <span id="countB">0</span></div>
+                <div class="stat-item text-yellow">Changed: <span id="countChanged">0</span></div>
+            </div>
+            <div class="table-wrapper">
+                <table id="diffTable">
+                    <thead></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
-      </div>
-      <div class="actions">
-        <button id="btnPreview" class="btn" type="button">Preview tables</button>
-        <button id="btnDiff" class="btn btn-primary" type="button">Run diff</button>
-      </div>
-    </section>
+    </main>
 
-    <!-- Preview -->
-    <section id="preview-section" class="card hidden" aria-labelledby="preview">
-      <h2 id="preview" class="step">Preview</h2>
-      <div class="grid-2">
-        <div>
-          <h3 class="subhead">Dataset A</h3>
-          <div id="previewA" class="table-wrap"></div>
-        </div>
-        <div>
-          <h3 class="subhead">Dataset B</h3>
-          <div id="previewB" class="table-wrap"></div>
-        </div>
-      </div>
-    </section>
+    <footer>
+        <p>DiffLens v1.0 | Visual Data Comparison Engine</p>
+        <p>Author: Vikram Kumar Sinha | <a href="https://github.com/thevikramsinha/DiffLens" style="color:var(--primary)">Source Code</a></p>
+    </footer>
 
-    <!-- Results -->
-    <section id="results-section" class="card hidden" aria-labelledby="results">
-      <h2 id="results" class="step">Results</h2>
-      <div id="summary" class="summary" aria-live="polite"></div>
-      <div class="tabs" role="tablist">
-        <button data-tab="onlyA" class="tab active" aria-selected="true" aria-controls="pane-onlyA">Only in A</button>
-        <button data-tab="onlyB" class="tab" aria-selected="false" aria-controls="pane-onlyB">Only in B</button>
-        <button data-tab="changed" class="tab" aria-selected="false" aria-controls="pane-changed">Changed rows</button>
-      </div>
-      <div class="tabpanes">
-        <div id="pane-onlyA" class="pane active"></div>
-        <div id="pane-onlyB" class="pane"></div>
-        <div id="pane-changed" class="pane"></div>
-      </div>
-      <div class="actions end">
-        <button id="btnExport" class="btn" type="button">Export diff as CSV</button>
-      </div>
-    </section>
-  </main>
+    <script>
+        /**
+         * DiffLens - Browser-based Data Comparison
+         * License: AGPL-3.0
+         * Author: Vikram Kumar Sinha
+         */
 
-  <footer class="tf-footer" role="contentinfo">
-    <div class="wrap">
-      <span>AGPL-3.0</span>
-      <span class="sep">•</span>
-      <span>DiffLens by Vikram Kumar Sinha</span>
-    </div>
-  </footer>
+        // State Management
+        const state = {
+            A: { data: null, sheets: {}, headers: [] },
+            B: { data: null, sheets: {}, headers: [] },
+            diffResult: []
+        };
 
-  <script type="module" src="./js/app.js"></script>
+        const els = {
+            fileA: document.getElementById('fileA'),
+            fileB: document.getElementById('fileB'),
+            sheetA: document.getElementById('sheetA'),
+            sheetB: document.getElementById('sheetB'),
+            keyA: document.getElementById('keyA'),
+            keyB: document.getElementById('keyB'),
+            settingsA: document.getElementById('settingsA'),
+            settingsB: document.getElementById('settingsB'),
+            runBtn: document.getElementById('runBtn'),
+            exportBtn: document.getElementById('exportBtn'),
+            results: document.getElementById('results'),
+            loader: document.getElementById('loader'),
+            table: document.getElementById('diffTable'),
+            countA: document.getElementById('countA'),
+            countB: document.getElementById('countB'),
+            countChanged: document.getElementById('countChanged')
+        };
 
-  <!-- Inline helper to show selected file names -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll(".file-input").forEach(input => {
-        input.addEventListener("change", e => {
-          const nameSpan = document.getElementById(e.target.id + "Name");
-          nameSpan.textContent = e.target.files.length
-            ? e.target.files[0].name
-            : "No file chosen";
+        // --- FILE HANDLING ---
+
+        els.fileA.addEventListener('change', (e) => handleFile(e.target.files[0], 'A'));
+        els.fileB.addEventListener('change', (e) => handleFile(e.target.files[0], 'B'));
+
+        async function handleFile(file, side) {
+            if (!file) return;
+            
+            // Reset UI for this side
+            els[`settings${side}`].style.display = 'none';
+            state[side] = { data: null, sheets: {}, headers: [] };
+            checkReady();
+
+            const ext = file.name.split('.').pop().toLowerCase();
+
+            try {
+                if (ext === 'docx') {
+                    await parseWord(file, side);
+                } else if (['xlsx', 'xls', 'csv'].includes(ext)) {
+                    await parseExcel(file, side);
+                } else {
+                    alert('Unsupported file format');
+                    return;
+                }
+                
+                // Populate Sheet Dropdown
+                const sheetSelect = els[`sheet${side}`];
+                sheetSelect.innerHTML = '';
+                Object.keys(state[side].sheets).forEach(sheetName => {
+                    const opt = document.createElement('option');
+                    opt.value = sheetName;
+                    opt.innerText = sheetName;
+                    sheetSelect.appendChild(opt);
+                });
+
+                // Show Settings
+                els[`settings${side}`].style.display = 'block';
+                
+                // Trigger column population for first sheet
+                updateColumns(side);
+
+            } catch (err) {
+                console.error(err);
+                alert(`Error parsing ${side}: ${err.message}`);
+            }
+        }
+
+        // --- PARSERS ---
+
+        function parseExcel(file, side) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    state[side].sheets = {};
+                    workbook.SheetNames.forEach(name => {
+                        const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
+                        if (jsonData.length > 0) {
+                            state[side].sheets[name] = jsonData; // Store as 2D array
+                        }
+                    });
+                    resolve();
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        async function parseWord(file, side) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    mammoth.convertToHtml({ arrayBuffer: e.target.result })
+                        .then(result => {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(result.value, 'text/html');
+                            const tables = doc.querySelectorAll('table');
+                            
+                            state[side].sheets = {};
+                            
+                            if(tables.length === 0) {
+                                alert("No tables found in Word document.");
+                                reject("No tables found");
+                                return;
+                            }
+
+                            tables.forEach((table, index) => {
+                                const rows = Array.from(table.querySelectorAll('tr'));
+                                const tableData = rows.map(tr => {
+                                    return Array.from(tr.querySelectorAll('td, th')).map(td => td.innerText.trim());
+                                });
+                                // Filter out empty rows
+                                const cleanData = tableData.filter(r => r.length > 0);
+                                if (cleanData.length > 0) {
+                                    state[side].sheets[`Table ${index + 1}`] = cleanData;
+                                }
+                            });
+                            resolve();
+                        })
+                        .catch(reject);
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // --- UI UPDATES ---
+
+        els.sheetA.addEventListener('change', () => updateColumns('A'));
+        els.sheetB.addEventListener('change', () => updateColumns('B'));
+
+        function updateColumns(side) {
+            const sheetName = els[`sheet${side}`].value;
+            const rawData = state[side].sheets[sheetName];
+            
+            if (!rawData || rawData.length === 0) return;
+
+            // Assume Row 0 is header
+            const headers = rawData[0].map(h => (h || '').toString().trim());
+            state[side].headers = headers;
+
+            const keySelect = els[`key${side}`];
+            keySelect.innerHTML = '';
+            
+            headers.forEach((h, i) => {
+                const opt = document.createElement('option');
+                opt.value = i; // Store index
+                opt.innerText = h || `Column ${i+1}`;
+                keySelect.appendChild(opt);
+            });
+
+            checkReady();
+        }
+
+        function checkReady() {
+            if (state.A.sheets && state.B.sheets && els.sheetA.value && els.sheetB.value) {
+                els.runBtn.disabled = false;
+            } else {
+                els.runBtn.disabled = true;
+            }
+        }
+
+        // --- COMPARISON ENGINE ---
+
+        els.runBtn.addEventListener('click', () => {
+            els.loader.style.display = 'block';
+            els.results.style.display = 'none';
+            els.exportBtn.style.display = 'none';
+
+            // Allow UI to render loader
+            setTimeout(executeDiff, 100);
         });
-      });
-    });
-  </script>
+
+        function executeDiff() {
+            const sheetA = els.sheetA.value;
+            const sheetB = els.sheetB.value;
+            const keyIdxA = parseInt(els.keyA.value);
+            const keyIdxB = parseInt(els.keyB.value);
+
+            // Convert 2D arrays to Objects based on Keys
+            const dataA = arrayToMap(state.A.sheets[sheetA], keyIdxA);
+            const dataB = arrayToMap(state.B.sheets[sheetB], keyIdxB);
+            
+            // Normalize Headers (Union of A and B headers)
+            const headersA = state.A.headers;
+            const headersB = state.B.headers;
+            
+            // Determine all unique columns for the final view
+            // (For simplicity, we will show A's structure plus Status)
+            const displayHeaders = ['STATUS', 'SOURCE', ...headersA];
+            
+            const diffRows = [];
+            let countA = 0, countB = 0, countChanged = 0;
+
+            // 1. Check A against B
+            dataA.map.forEach((rowA, key) => {
+                if (dataB.map.has(key)) {
+                    // Exists in both: Check for changes
+                    const rowB = dataB.map.get(key);
+                    const changes = [];
+                    
+                    // Compare columns (by index if aligned, or by name match logic?)
+                    // Simplified: We compare value by column index assuming schemas match. 
+                    // If schemas differ, this is a limitation.
+                    
+                    let isChanged = false;
+                    const resultRow = { _status: 'MATCH', _source: 'Both', ...rowA };
+
+                    // Compare values based on headers of A
+                    headersA.forEach((h, colIdx) => {
+                         // Find corresponding column in B? 
+                         // For this version, we assume column order matches or we compare by Index 
+                         // To be robust, we really should compare by Header Name match.
+                         
+                         const valA = rowA[colIdx];
+                         
+                         // Find index in B where header matches header A[colIdx]
+                         const headerName = headersA[colIdx];
+                         const colIdxB = headersB.indexOf(headerName);
+                         
+                         if(colIdxB !== -1) {
+                             const valB = rowB[colIdxB];
+                             if(valA !== valB) {
+                                 isChanged = true;
+                                 resultRow[`_diff_${colIdx}`] = true; // Mark cell changed
+                                 resultRow[colIdx] = `${valA} -> ${valB}`;
+                             }
+                         }
+                    });
+
+                    if (isChanged) {
+                        resultRow._status = 'CHANGED';
+                        countChanged++;
+                        diffRows.push(resultRow);
+                    } 
+                    // If exact match, we skip adding to table to keep it clean, 
+                    // or we can add an option to "Show Matches".
+                    // For DiffLens, let's show only diffs.
+
+                    // Remove from B map so we know what's left
+                    dataB.map.delete(key);
+                } else {
+                    // Only in A
+                    countA++;
+                    diffRows.push({ _status: 'ONLY IN A', _source: 'File A', ...rowA });
+                }
+            });
+
+            // 2. Remaining in B
+            dataB.map.forEach((rowB, key) => {
+                countB++;
+                // We need to map B's data to A's structure roughly
+                const remappedRow = { _status: 'ONLY IN B', _source: 'File B' };
+                
+                // Try to map B columns to A headers
+                headersA.forEach((h, i) => {
+                    const bIndex = headersB.indexOf(h);
+                    if(bIndex !== -1) remappedRow[i] = rowB[bIndex];
+                    else remappedRow[i] = "N/A";
+                });
+                
+                diffRows.push(remappedRow);
+            });
+
+            state.diffResult = diffRows;
+            renderTable(displayHeaders, diffRows, headersA);
+            
+            els.countA.innerText = countA;
+            els.countB.innerText = countB;
+            els.countChanged.innerText = countChanged;
+            
+            els.loader.style.display = 'none';
+            els.results.style.display = 'block';
+            els.exportBtn.style.display = 'inline-block';
+        }
+
+        function arrayToMap(rows, keyIdx) {
+            // Rows is [ [h1, h2], [v1, v2] ... ]
+            // Skip header (index 0)
+            const map = new Map();
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                // Ensure key exists
+                const key = (row[keyIdx] !== undefined && row[keyIdx] !== null) ? row[keyIdx].toString().trim() : `__row_${i}`;
+                map.set(key, row); // row is array
+            }
+            return { map };
+        }
+
+        // --- RENDERING ---
+
+        function renderTable(displayHeaders, rows, originalHeaders) {
+            const thead = els.table.querySelector('thead');
+            const tbody = els.table.querySelector('tbody');
+            thead.innerHTML = '';
+            tbody.innerHTML = '';
+
+            // Header
+            const trHead = document.createElement('tr');
+            displayHeaders.forEach(h => {
+                const th = document.createElement('th');
+                th.innerText = h;
+                trHead.appendChild(th);
+            });
+            thead.appendChild(trHead);
+
+            // Body
+            rows.forEach(row => {
+                const tr = document.createElement('tr');
+                
+                // Styling Classes
+                if (row._status === 'ONLY IN A') tr.classList.add('diff-a');
+                else if (row._status === 'ONLY IN B') tr.classList.add('diff-b');
+                else if (row._status === 'CHANGED') tr.classList.add('diff-changed');
+
+                // Status Cell
+                const tdStat = document.createElement('td');
+                tdStat.innerText = row._status;
+                tr.appendChild(tdStat);
+
+                // Source Cell
+                const tdSrc = document.createElement('td');
+                tdSrc.innerText = row._source;
+                tr.appendChild(tdSrc);
+
+                // Data Cells
+                originalHeaders.forEach((h, i) => {
+                    const td = document.createElement('td');
+                    td.innerText = row[i] !== undefined ? row[i] : '';
+                    
+                    if (row[`_diff_${i}`]) {
+                        td.classList.add('cell-changed');
+                    }
+                    
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- EXPORT ---
+        els.exportBtn.addEventListener('click', () => {
+            if(state.diffResult.length === 0) return;
+
+            // Convert output object to worksheet
+            // Flatten object for SheetJS
+            const flatData = state.diffResult.map(r => {
+                const newRow = { Status: r._status, Source: r._source };
+                state.A.headers.forEach((h, i) => {
+                    newRow[h] = r[i];
+                });
+                return newRow;
+            });
+
+            const ws = XLSX.utils.json_to_sheet(flatData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "DiffLens_Report");
+            XLSX.writeFile(wb, "DiffLens_Report.csv");
+        });
+
+    </script>
 </body>
 </html>
