@@ -13,7 +13,7 @@
 ## 🚀 Live Demo
 **[Initialize System: thevikramsinha.github.io/DiffLens](https://thevikramsinha.github.io/DiffLens/)**
 
-![DiffLens Interface Preview]([https://via.placeholder.com/800x400/050b14/00f3ff?text=DiffLens+Interface+Preview](https://thevikramsinha.github.io/DiffLens/DiffLens.png])
+[![DiffLens Interface Preview](https://thevikramsinha.github.io/DiffLens/DiffLens.png)](https://thevikramsinha.github.io/DiffLens/DiffLens.png)
 
 
 ---
